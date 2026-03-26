@@ -500,5 +500,116 @@ function renderDailyTable(data, tbody) {
   }).join('');
 }
 
+// --- Withdraw Modal ---
+function openWithdrawModal() {
+  const modal = document.getElementById('withdrawModal');
+  modal.classList.add('active');
+  goToStep1();
+
+  // Populate receive amounts
+  let live;
+  if (currentInvestor === 'total') {
+    live = getLiveCombined();
+  } else {
+    live = getLiveBalance(currentInvestor);
+  }
+
+  const balance = live.currentBalance;
+
+  document.getElementById('instantReceive').textContent =
+    `Current Balance: ${balance.toFixed(6)} BTC — 수령액은 유동성 상황에 따라 결정`;
+  document.getElementById('standardReceive').textContent =
+    `You receive: ${balance.toFixed(6)} BTC (full amount, 6+ months)`;
+}
+
+function closeWithdrawModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('withdrawModal').classList.remove('active');
+}
+
+function goToStep1() {
+  document.getElementById('withdrawStep1').classList.remove('hidden');
+  document.getElementById('withdrawStep2Instant').classList.add('hidden');
+  document.getElementById('withdrawStep2Standard').classList.add('hidden');
+  document.getElementById('withdrawStep3').classList.add('hidden');
+}
+
+function selectWithdrawOption(type) {
+  let live;
+  if (currentInvestor === 'total') {
+    live = getLiveCombined();
+  } else {
+    live = getLiveBalance(currentInvestor);
+  }
+  const balance = live.currentBalance;
+
+  document.getElementById('withdrawStep1').classList.add('hidden');
+
+  if (type === 'instant') {
+    document.getElementById('instantCurrentBalance').textContent = balance.toFixed(6) + ' BTC';
+    document.getElementById('instantFinalAmount').textContent = 'To be determined by liquidity';
+    document.getElementById('withdrawStep2Instant').classList.remove('hidden');
+  } else {
+    document.getElementById('standardCurrentBalance').textContent = balance.toFixed(6) + ' BTC';
+    document.getElementById('standardFinalAmount').textContent = balance.toFixed(6) + ' BTC';
+    document.getElementById('withdrawStep2Standard').classList.remove('hidden');
+  }
+}
+
+function confirmInstantWithdraw() {
+  sendWithdrawEmail('instant');
+  showSuccess(
+    '즉시 해지 요청 접수',
+    '즉시 해지 요청이 접수되었습니다. 현재 유동성 상황에 따라 포지션 청산이 진행되며, 실제 수령 금액은 청산 완료 후 확정됩니다. 운용팀에서 별도로 연락드리겠습니다.'
+  );
+}
+
+function submitRedemption() {
+  sendWithdrawEmail('standard');
+  showSuccess(
+    '정상 해지 요청 접수',
+    '정상 해지 요청이 접수되었습니다. 운용 중인 포지션의 만기 구조에 따라 최소 3~6개월의 처리 기간이 필요하며, 진행 상황은 등록된 이메일로 안내드리겠습니다.'
+  );
+}
+
+function showSuccess(title, message) {
+  document.getElementById('withdrawStep2Instant').classList.add('hidden');
+  document.getElementById('withdrawStep2Standard').classList.add('hidden');
+  document.getElementById('successTitle').textContent = title;
+  document.getElementById('successMessage').textContent = message;
+  document.getElementById('withdrawStep3').classList.remove('hidden');
+}
+
+function sendWithdrawEmail(type) {
+  let live;
+  const investorName = currentInvestor === 'total' ? 'Fund Total' :
+    currentInvestor === 'kim' ? '김승주' : '조영은';
+
+  if (currentInvestor === 'total') {
+    live = getLiveCombined();
+  } else {
+    live = getLiveBalance(currentInvestor);
+  }
+
+  const balance = live.currentBalance;
+  const now = new Date().toISOString();
+
+  const subject = encodeURIComponent(
+    `[Mount Alpha] ${type === 'instant' ? 'Instant Withdrawal' : 'Standard Redemption'} Request - ${investorName}`
+  );
+
+  const body = encodeURIComponent(
+    `Fund Withdrawal Request\n` +
+    `========================\n\n` +
+    `Type: ${type === 'instant' ? '즉시 해지 (유동성 디스카운트 적용)' : '정상 해지 (디스카운트 없음, 3~6개월 소요)'}\n` +
+    `Investor: ${investorName}\n` +
+    `Current Balance: ${balance.toFixed(8)} BTC\n` +
+    `Requested At: ${now}\n\n` +
+    `Please process this withdrawal request.\n`
+  );
+
+  window.open(`mailto:contact@entropy-trading.com?subject=${subject}&body=${body}`, '_self');
+}
+
 // --- Boot ---
 document.addEventListener('DOMContentLoaded', init);
