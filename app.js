@@ -546,8 +546,10 @@ function selectWithdrawOption(type) {
   document.getElementById('withdrawStep1').classList.add('hidden');
 
   if (type === 'instant') {
+    const estimatedReceive = balance * 0.39;
     document.getElementById('instantCurrentBalance').textContent = balance.toFixed(6) + ' BTC';
-    document.getElementById('instantFinalAmount').textContent = 'To be determined by liquidity';
+    document.getElementById('instantDiscountAmount').textContent = '-' + (balance - estimatedReceive).toFixed(6) + ' BTC';
+    document.getElementById('instantFinalAmount').textContent = '~' + estimatedReceive.toFixed(6) + ' BTC';
     document.getElementById('withdrawStep2Instant').classList.remove('hidden');
   } else {
     document.getElementById('standardCurrentBalance').textContent = balance.toFixed(6) + ' BTC';
