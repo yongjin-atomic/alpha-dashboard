@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mount Alpha Fund Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <polygon points="16,2 30,28 2,28" fill="#2563eb" opacity="0.9"/>
+            <polygon points="16,10 24,26 8,26" fill="#1e40af"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="fund-name">Mount Alpha Fund</h1>
+          <span class="fund-type">BTC Quantitative Fixed-Rate Fund</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="live-indicator">
+          <span class="live-dot"></span>
+          LIVE
+        </div>
+        <div class="last-updated" id="lastUpdated"></div>
+      </div>
+    </header>
+
+    <!-- Investor Tabs -->
+    <div class="tab-container">
+      <button class="tab active" data-investor="kim" onclick="switchTab('kim')">
+        <span class="tab-name">김승주</span>
+        <span class="tab-balance" id="kimTabBalance"></span>
+      </button>
+      <button class="tab" data-investor="cho" onclick="switchTab('cho')">
+        <span class="tab-name">조영은</span>
+        <span class="tab-balance" id="choTabBalance"></span>
+      </button>
+      <button class="tab" data-investor="total" onclick="switchTab('total')">
+        <span class="tab-name">Fund Total</span>
+        <span class="tab-balance" id="totalTabBalance"></span>
+      </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="cards">
+      <div class="card primary">
+        <div class="card-label">Total Balance</div>
+        <div class="card-value" id="totalBalance">--</div>
+        <div class="card-unit">BTC</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Initial Principal</div>
+        <div class="card-value" id="principal">--</div>
+        <div class="card-unit">BTC</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Total Profit</div>
+        <div class="card-value accent" id="totalProfit">--</div>
+        <div class="card-unit">BTC</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Total Withdrawn</div>
+        <div class="card-value" id="totalWithdrawn">--</div>
+        <div class="card-unit">BTC</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Annual Rate</div>
+        <div class="card-value accent" id="annualRate">10.00%</div>
+        <div class="card-unit">Simple Interest</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Daily Profit</div>
+        <div class="card-value accent" id="dailyProfit">--</div>
+        <div class="card-unit">BTC / day</div>
+      </div>
+    </div>
+
+    <!-- Live Ticker -->
+    <div class="live-ticker">
+      <div class="ticker-label">Today's Accrued Profit</div>
+      <div class="ticker-value" id="todayProfit">+0.0000000000</div>
+      <div class="ticker-sub">accumulating in real-time</div>
+      <div class="ticker-bar-wrap">
+        <div class="ticker-bar" id="tickerBar"></div>
+      </div>
+      <div class="ticker-time-range">
+        <span>00:00</span><span>Now</span><span>24:00</span>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-section">
+      <div class="chart-header">
+        <h2>Balance History</h2>
+        <div class="chart-controls">
+          <button class="chart-btn active" onclick="setChartRange('all')">All</button>
+          <button class="chart-btn" onclick="setChartRange('1y')">1Y</button>
+          <button class="chart-btn" onclick="setChartRange('6m')">6M</button>
+          <button class="chart-btn" onclick="setChartRange('3m')">3M</button>
+          <button class="chart-btn" onclick="setChartRange('1m')">1M</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="balanceChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Profit Chart -->
+    <div class="chart-section">
+      <div class="chart-header">
+        <h2>Daily Profit</h2>
+      </div>
+      <div class="chart-container small">
+        <canvas id="profitChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Monthly Summary Table -->
+    <div class="table-section">
+      <div class="table-header">
+        <h2>Monthly Summary</h2>
+        <div class="table-controls">
+          <button class="chart-btn active" onclick="setTableView('monthly')">Monthly</button>
+          <button class="chart-btn" onclick="setTableView('daily')">Daily</button>
+        </div>
+      </div>
+      <div class="table-wrapper" id="tableWrapper">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Balance (BTC)</th>
+              <th>Profit (BTC)</th>
+              <th>Withdrawal (BTC)</th>
+              <th>Cumulative Profit (BTC)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Mount Alpha Fund &copy; 2023-2026. All amounts in BTC. Simple interest at 10% p.a.</p>
+      <p class="disclaimer">This dashboard is for authorized investors only. Past performance does not guarantee future results.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
