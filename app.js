@@ -1,6 +1,6 @@
 // ============================================================
 // Mount Alpha Fund - Dashboard Application
-// Simple Interest 10% p.a., real-time daily accrual
+// Monthly Compound Interest 10% p.a., real-time daily accrual
 // ============================================================
 
 const ANNUAL_RATE = 0.10;
